@@ -315,3 +315,100 @@ class AIProcessingResponse(BaseSchema):
     suggested_actions: Optional[List[str]] = None
     is_prayer_time: bool = False
     should_escalate: bool = False
+
+# Feedback Campaign schemas
+class CampaignStatus(str, Enum):
+    DRAFT = "draft"
+    SCHEDULED = "scheduled"
+    ACTIVE = "active"
+    COMPLETED = "completed"
+    CANCELLED = "cancelled"
+    DELETED = "deleted"
+
+class RecipientStatus(str, Enum):
+    PENDING = "pending"
+    SENT = "sent"
+    RESPONDED = "responded"
+    FAILED = "failed"
+
+class MessageStatus(str, Enum):
+    SCHEDULED = "scheduled"
+    QUEUED = "queued"
+    SENT = "sent"
+    DELIVERED = "delivered"
+    READ = "read"
+    RESPONDED = "responded"
+    FAILED = "failed"
+    CANCELLED = "cancelled"
+
+class CampaignBase(BaseSchema):
+    name: str = Field(..., max_length=255)
+    description: Optional[str] = None
+    restaurant_id: UUID
+    status: CampaignStatus = CampaignStatus.DRAFT
+    scheduled_start: Optional[datetime] = None
+    scheduled_end: Optional[datetime] = None
+    settings: Optional[Dict[str, Any]] = None
+
+class CampaignCreate(CampaignBase):
+    pass
+
+class CampaignUpdate(BaseSchema):
+    name: Optional[str] = Field(None, max_length=255)
+    description: Optional[str] = None
+    status: Optional[CampaignStatus] = None
+    scheduled_start: Optional[datetime] = None
+    scheduled_end: Optional[datetime] = None
+    settings: Optional[Dict[str, Any]] = None
+
+class CampaignResponse(CampaignBase):
+    id: UUID
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+    created_by: Optional[UUID] = None
+    metrics: Optional[Dict[str, Any]] = None
+    recipient_count: Optional[int] = 0
+
+class CampaignMetrics(BaseSchema):
+    campaign_id: UUID
+    total_recipients: int
+    messages_sent: int
+    responses_received: int
+    response_rate: float
+    average_rating: float
+    sentiment_distribution: Dict[str, int]
+    completion_rate: float
+    status_breakdown: Dict[str, int]
+
+class ScheduleParameters(BaseSchema):
+    start_time: datetime
+    end_time: datetime
+    template: Optional[str] = "default"
+    batch_size: Optional[int] = Field(100, ge=1, le=1000)
+    delay_minutes: Optional[int] = Field(180, ge=120, le=240)  # 2-4 hours
+
+class ExperimentVariant(BaseSchema):
+    id: str = Field(..., max_length=50)
+    weight: float = Field(..., ge=0, le=1)
+    template: str = Field(..., max_length=50)
+    parameters: Optional[Dict[str, Any]] = None
+
+class ExperimentConfig(BaseSchema):
+    name: str = Field(..., max_length=255)
+    variants: List[ExperimentVariant]
+    metrics: List[str]
+    min_sample_size: int = Field(100, ge=10)
+
+class FeedbackData(BaseSchema):
+    campaign_id: Optional[UUID] = None
+    campaign_recipient_id: Optional[UUID] = None
+    message_id: Optional[UUID] = None
+    conversation_id: UUID
+    customer_phone: str
+    restaurant_id: UUID
+    rating: Optional[int] = Field(None, ge=1, le=5)
+    message: str
+    sentiment_score: float = Field(..., ge=-1, le=1)
+    topics: List[str] = []
+    is_repeated_issue: bool = False
+    metadata: Optional[Dict[str, Any]] = None

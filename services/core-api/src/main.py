@@ -21,6 +21,9 @@ from .schemas import (
 from .services.prayer_service import PrayerTimeService
 from .services.conversation_service import ConversationService
 from .services.customer_service import CustomerService
+from .middleware.rate_limiter import rate_limit_middleware
+from .middleware.input_sanitization import InputSanitizationMiddleware
+from .api import feedback_campaigns
 
 # Global services
 prayer_service = PrayerTimeService()
@@ -55,6 +58,15 @@ app.add_middleware(
     TrustedHostMiddleware,
     allowed_hosts=["localhost", "127.0.0.1", "*.vercel.app"]
 )
+
+# Add input sanitization middleware
+app.add_middleware(InputSanitizationMiddleware)
+
+# Add rate limiting middleware
+app.middleware("http")(rate_limit_middleware)
+
+# Include routers
+app.include_router(feedback_campaigns.router)
 
 # Health check
 @app.get("/health")

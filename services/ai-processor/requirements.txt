@@ -1,0 +1,15 @@
+fastapi==0.110.0
+uvicorn[standard]==0.27.0
+pydantic==2.5.0
+python-multipart==0.0.6
+python-dotenv==1.0.0
+httpx==0.26.0
+langchain==0.1.0
+langchain-openai==0.0.5
+transformers==4.36.0
+torch==2.1.0
+pandas==2.1.4
+polars==0.20.6
+pytest==8.0.0
+pytest-asyncio==0.23.2
+pytest-mock==3.12.0

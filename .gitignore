@@ -49,8 +49,6 @@ coverage/
 tmp/
 temp/
 
-# AI/Claude specific
-.claude/
 
 # Turborepo
 .turbo/

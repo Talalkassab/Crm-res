@@ -1,0 +1,112 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test-frontend:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Build Next.js Dashboard
+      run: cd apps/dashboard && npm run build
+
+    - name: Run Frontend Tests
+      run: cd apps/dashboard && npm run test
+
+    - name: Run Frontend Linting
+      run: cd apps/dashboard && npm run lint
+
+    - name: Type Check
+      run: cd apps/dashboard && npm run type-check
+
+  test-python-services:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.12']
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install Core API dependencies
+      run: |
+        cd services/core-api
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Test Core API
+      run: |
+        cd services/core-api
+        python -m pytest tests/ -v
+
+    - name: Install AI Processor dependencies  
+      run: |
+        cd services/ai-processor
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Test AI Processor
+      run: |
+        cd services/ai-processor
+        python -m pytest tests/ -v
+
+  docker-build:
+    runs-on: ubuntu-latest
+    needs: [test-frontend, test-python-services]
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Build Dashboard Docker Image
+      run: docker build -t crm-res-dashboard ./apps/dashboard
+
+    - name: Build Core API Docker Image
+      run: docker build -t crm-res-core-api ./services/core-api
+
+    - name: Build AI Processor Docker Image
+      run: docker build -t crm-res-ai-processor ./services/ai-processor
+
+  build-monorepo:
+    runs-on: ubuntu-latest
+    needs: [test-frontend, test-python-services]
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Use Node.js 18.x
+      uses: actions/setup-node@v4
+      with:
+        node-version: 18.x
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Build all packages
+      run: npm run build

@@ -14,13 +14,27 @@ A culturally-intelligent WhatsApp automation platform designed specifically for 
 
 ## 🏗️ Architecture
 
+```
+crm-res/
+├── apps/
+│   └── dashboard/           # Next.js 14 React dashboard (Port: 3000)
+├── services/
+│   ├── core-api/           # FastAPI core service (Port: 8000)
+│   ├── ai-processor/       # AI processing service (Port: 8001)
+│   └── whatsapp-gateway/   # Future WhatsApp service
+├── packages/
+│   ├── shared-types/       # Shared TypeScript/Python types
+│   └── ui-components/      # Reusable React components
+└── infrastructure/         # Docker & deployment configs
+```
+
 ### Tech Stack
-- **Frontend**: Next.js 14, TypeScript, Tailwind CSS, Shadcn/ui
-- **Backend**: Python 3.12, FastAPI, Docker containers
-- **Database**: Supabase (PostgreSQL) with real-time subscriptions
+- **Frontend**: Next.js 14.2+, TypeScript 5.3+, Tailwind CSS 3.4+, Shadcn/ui, Zustand 4.5+
+- **Backend**: Python 3.12+, FastAPI 0.110+, Docker containers
+- **Database**: Supabase (PostgreSQL) with real-time subscriptions  
 - **AI**: OpenRouter API for multi-provider LLM access
-- **Deployment**: AWS ECS Fargate, Vercel for frontend
-- **Monorepo**: Turborepo for unified development experience
+- **Testing**: Vitest (frontend), Pytest 8.0+ (backend), Playwright (E2E)
+- **Monorepo**: Turborepo 1.13+ for unified development experience
 
 ### System Overview
 ```mermaid
@@ -73,10 +87,8 @@ cd crm-res
 npm install
 
 # Install Python dependencies for each service
-cd services/whatsapp-gateway && pip install -r requirements.txt
-cd ../ai-processor && pip install -r requirements.txt
-cd ../core-api && pip install -r requirements.txt
-cd ../analytics-service && pip install -r requirements.txt
+cd services/core-api && pip install -r requirements.txt && cd ../..
+cd services/ai-processor && pip install -r requirements.txt && cd ../..
 ```
 
 3. **Environment setup**
@@ -93,17 +105,19 @@ cp .env.example .env
 4. **Start development environment**
 ```bash
 # Start all services with Docker Compose
-docker-compose up -d
+docker-compose up --build
 
 # Or start individual services:
-turbo run dev --filter=dashboard    # Frontend dashboard
-uvicorn services.whatsapp-gateway.src.main:app --reload --port 8001
-uvicorn services.ai-processor.src.main:app --reload --port 8002
+npm run dev                                        # All services via Turborepo
+cd apps/dashboard && npm run dev                   # Frontend dashboard (Port: 3000)
+cd services/core-api && python src/main.py        # Core API (Port: 8000)
+cd services/ai-processor && python src/main.py    # AI Processor (Port: 8001)
 ```
 
 5. **Access the application**
 - Dashboard: http://localhost:3000
-- API Documentation: http://localhost:8001/docs
+- Core API Documentation: http://localhost:8000/docs
+- AI Processor Documentation: http://localhost:8001/docs
 
 ## 📱 WhatsApp Integration
 

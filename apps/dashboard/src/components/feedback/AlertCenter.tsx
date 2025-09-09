@@ -472,7 +472,7 @@ export default function AlertCenter({
                                       <div>
                                         <span className="text-muted-foreground text-xs">الرسالة:</span>
                                         <p className="text-right mt-1 italic">
-                                          "{alert.details.message}"
+                                          &quot;{alert.details.message}&quot;
                                         </p>
                                       </div>
                                     )}
